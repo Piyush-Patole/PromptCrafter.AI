@@ -47,7 +47,28 @@ PromptCraft is built directly on peer-reviewed research. Every design decision t
 
 ## 🏗️ Technical Architecture & Design Decisions
 
-PromptCraft is designed as a highly optimized, **serverless Single Page Application (SPA)**. All AI processing goes directly from the user's browser to the Groq API over HTTPS, ensuring maximum privacy and zero DevOps overhead for the demo.
+PromptCraft is designed as a highly optimized, **serverless Single Page Application (SPA)**. All AI processing goes directly from the user's browser to the Groq API over HTTPS, ensuring maximum privacy and zero DevOps overhead.
+
+### System Architecture Flow
+
+```mermaid
+graph TD
+    A[Browser / React SPA] -->|Zustand Global Store| B(groqClient.js)
+    B -->|HTTPS POST| C[Groq Cloud API]
+    C -->|Llama 3.3 70B \n Structured JSON| B
+    B --> A
+```
+
+### 🛠️ Tech Stack Used
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **UI Framework** | React 18 | Component model, hooks |
+| **Build Tool** | Vite | Lightning-fast HMR and static bundling |
+| **State Management**| Zustand | Minimal, centralized global state |
+| **AI Inference** | Groq API | Llama 3.3 70B serving at ~500 tokens/sec |
+| **Styling** | Native CSS Objects | Zero CSS dependencies, custom design token system |
+| **Hosting & CI/CD** | GitHub Pages & Actions | Automated pipeline triggering on `main` pushes |
 
 ### High-Level Flow
 - **Frontend Layer:** React 18 and Vite provide a lightning-fast, modular interface.
