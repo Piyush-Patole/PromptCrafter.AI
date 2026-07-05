@@ -10,12 +10,6 @@
     Transform any raw, vague, or broken prompt into a precision-engineered instruction using 12 research-backed techniques — entirely in the browser, with zero backend required.
   </p>
 
-  [![Deploy](https://img.shields.io/badge/Deploy-GitHub%20Pages-181717?logo=github)](https://pages.github.com/)
-  [![Groq](https://img.shields.io/badge/AI-Groq%20%C2%B7%20Llama%203.3%2070B-FF6B35)](https://console.groq.com)
-  [![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react)](https://react.dev)
-  [![Vite](https://img.shields.io/badge/Vite-5.3-646CFF?logo=vite)](https://vitejs.dev)
-  [![Zustand](https://img.shields.io/badge/State-Zustand-orange)](https://github.com/pmndrs/zustand)
-  [![License](https://img.shields.io/badge/License-MIT-22C55E)](LICENSE)
 </div>
 
 ---
