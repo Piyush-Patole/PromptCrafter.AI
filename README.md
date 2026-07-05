@@ -88,22 +88,70 @@ graph TD
 These techniques were specifically selected based on their proven ability to manipulate transformer attention heads and drastically reduce hallucination rates. They are categorized to address different layers of prompt failure:
 
 ### Foundational & Context Framing
-1. **Zero-Shot:** Establishes a clean task intent, acting as the absolute baseline before adding complexity.
-2. **Few-Shot:** Prepending 3–5 high-quality examples mathematically shifts the model's output distribution toward your specific domain conventions (Brown et al., 2020).
-3. **Role & Persona:** Providing a domain, experience signal, and behavioral constraint forces the model into expert-level data clusters rather than generic "assistant" responses.
+
+#### 1. Zero-Shot
+- **Why it's required:** Without a clear zero-shot framing, no other technique can compensate for an ambiguous task definition. Articulating exactly what you want is the single most impactful prompt action.
+- **How it's useful:** Establishes a clean task intent without examples, acting as the absolute baseline before adding complexity.
+- **Impact & Significance:** Sets clean task intent. Fast, moderate reliability, but high variance on complex or domain-specific tasks.
+
+#### 2. Few-Shot
+- **Why it's required:** Models often struggle to infer specific domain formatting, tone, or constraints from instructions alone.
+- **How it's useful:** Prepends 3–5 high-quality input-output examples to teach domain conventions. The model infers the underlying pattern and applies it to new inputs.
+- **Impact & Significance:** The single most reliable way to teach a model your specific format without fine-tuning. Mathematically shifts the model's output distribution toward your conventions. Dramatically improves output format consistency.
+
+#### 3. Role & Persona
+- **Why it's required:** Broad personas like "You are an expert" activate wide semantic regions in the model's latent space, producing generic outputs.
+- **How it's useful:** Narrows the model's active training distribution toward professional data spaces by providing a Domain, Experience Signal, and Behavioral Constraint (e.g., *"You are a senior backend engineer with 10 years of Python experience who writes concise code"*).
+- **Impact & Significance:** Anchors domain vocabulary, tone, and expertise level across the entire response, shifting the output away from generic "assistant" registers.
 
 ### Structural Reliability
-4. **XML Delimiters:** Wraps distinct semantic blocks in tags (e.g., `<task>`, `<context>`). This completely eliminates instruction-to-data confusion where models mistakenly execute user data as commands.
-5. **Output Contract:** Enforces a rigid schema, effectively forcing the model to evaluate binary constraints, making output parseable for downstream automation.
-6. **Position Anchoring:** Fixes the "Lost-in-the-Middle" phenomenon by moving critical constraints to the absolute beginning and end of the prompt sequence, ensuring maximum attention weight.
-7. **Positive Framing:** Rephrases negative constraints (e.g., "don't do X") into positive instructions, removing the accidental activation of forbidden tokens in the latent space.
-8. **Context Compression:** Strips out irrelevant context that otherwise dilutes the attention mechanism's focus across too many tokens.
+
+#### 4. XML Delimiters
+- **Why it's required:** Transformer attention heads struggle to isolate instructions from source data, causing "instruction-to-data confusion" where the model accidentally treats a reference document sentence as a command.
+- **How it's useful:** Wraps distinct semantic blocks in tags (e.g., `<task>`, `<context>`, `<output_format>`). LLMs are pretrained heavily on structured markup.
+- **Impact & Significance:** Completely eliminates instruction-to-data confusion. Delivers massive reliability gains for any prompt with mixed content.
+
+#### 5. Output Contract
+- **Why it's required:** Without a defined output contract, every response format varies, making it impossible to parse or automate downstream.
+- **How it's useful:** Defines the exact schema, format, and constraints the model must produce. Instead of "return JSON", it defines the full schema with exact field names and types.
+- **Impact & Significance:** Enforces a rigid schema, effectively forcing the model to evaluate binary constraints. Guarantees parseable, predictable artifacts every single time.
+
+#### 6. Position Anchoring
+- **Why it's required:** Transformer models exhibit a documented U-shaped attention curve ("Lost-in-the-Middle" effect). Any rule buried in the middle of a long prompt is mathematically less competitive for the model's attention budget.
+- **How it's useful:** Restructures the prompt so critical rules and constraints are moved to the absolute start and end of the sequence.
+- **Impact & Significance:** One of the most impactful structural fixes. Prevents rules from being ignored in long prompts without needing to change any actual content.
+
+#### 7. Positive Framing
+- **Why it's required:** Autoregressive models predict the next most probable token. Writing a negative constraint (e.g., "do not use passive voice") actually activates passive-voice tokens in the model's latent space, making them statistically more likely to appear.
+- **How it's useful:** Rewrites every negative constraint into a positive prescription (e.g., "Write strictly in the active voice").
+- **Impact & Significance:** Removes accidental token priming. Improves adherence to style and format constraints with zero added token cost.
+
+#### 8. Context Compression
+- **Why it's required:** The Softmax attention function distributes weights across every token. Every filler token dilutes the attention weight on tokens that actually matter (the Softmax attention bottleneck).
+- **How it's useful:** Strips out irrelevant context and noise before the prompt reaches the model, keeping the signal-to-noise ratio extremely high.
+- **Impact & Significance:** Forces higher attention weight on critical instructions, dramatically lowering the hallucination rate.
 
 ### Advanced Reasoning
-9. **Chain-of-Thought (CoT):** Forces the model to output intermediate reasoning steps before answering, dramatically reducing logical errors on complex tasks.
-10. **Chain-of-Draft:** A 2025 technique that achieves CoT-level reasoning accuracy while using only 7.6% of the token overhead by forcing extreme brevity in reasoning steps.
-11. **Least-to-Most:** Breaks complex problems into sequential sub-problems. This solves tasks that require the model to juggle too many variables at once.
-12. **Self-Verification:** Injects a metacognitive evaluation loop, forcing the model to double-check its own draft against the original constraints before finalizing the output.
+
+#### 9. Chain-of-Thought (CoT)
+- **Why it's required:** Complex tasks fail because models try to jump directly to token completion without establishing a logical pathway.
+- **How it's useful:** Instructs the model to generate intermediate reasoning steps before providing the final answer. Externalizing reasoning forces the model to allocate attention to logical steps.
+- **Impact & Significance:** Transforms a model from a pattern-matcher into a logical reasoner. Dramatically reduces logical errors and achieves state-of-the-art accuracy on math and logic benchmarks.
+
+#### 10. Chain-of-Draft
+- **Why it's required:** Traditional Chain-of-Thought reasoning achieves high accuracy but generates 13× more intermediate tokens than necessary, increasing cost and latency.
+- **How it's useful:** Instructs the model to generate highly compressed intermediate reasoning steps capped at approximately 5 words per step.
+- **Impact & Significance:** Matches full CoT accuracy while using only 7.6% of the token overhead. Makes structured reasoning economically viable at scale in production environments.
+
+#### 11. Least-to-Most
+- **Why it's required:** Complex tasks often fail not because the model lacks capability, but because it cannot hold all sub-problems in working attention simultaneously.
+- **How it's useful:** Decomposes a complex problem into simpler sub-problems, then solves them in sequential order, appending each solution as context for the next step.
+- **Impact & Significance:** The definitive technique for multi-step reasoning chains. On compositional generalization benchmarks, it improves execution accuracy from 16% to over 99%.
+
+#### 12. Self-Verification
+- **Why it's required:** Even highly engineered prompts can occasionally produce format violations or logic errors on the first pass.
+- **How it's useful:** Adds a metacognitive evaluation loop to the prompt, forcing the model to generate a draft, analyze it against the original constraints, and correct errors before finalizing the output.
+- **Impact & Significance:** Acts as a quality gate. Catches the majority of format violations and logical errors before they ever reach the user.
 
 ---
 
